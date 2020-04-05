@@ -1,0 +1,63 @@
+<html>
+
+<head>
+    <title>Elko Baptist Church</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <style>
+        .header {
+            text-align: center;
+        }
+        
+        .content {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Elko Baptist Church</h1>
+    </div>
+    <div class="content">
+        <input id="inFile" type="file" /><br />
+        <button id="btnUploadFile" value="Submit">Upload Video!</button><br />
+        <progress id="Progress" value="0" max="100"></progress>
+    </div>
+    <script type="text/javascript">
+        ; $(function () {
+            $("#btnUploadFile").click(function (evt) {
+                var file = document.getElementById("inFile").files[0]
+                $.ajax({
+                    xhr: function () {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener("progress", function (evt) {
+                            if (evt.lengthComputable) {
+                                var percentComplete = evt.loaded / evt.total;
+                                percentComplete = parseInt(percentComplete * 100);
+                                $("#Progress").val(percentComplete)
+                                if (console) { console.log(percentComplete); }
+                            }
+                        }, false);
+                        xhr.upload.addEventListener("error", function (evt) {
+                            alert('There was an error uploading this file.');
+                        });
+                        xhr.upload.addEventListener("load", function (evt) {
+                            document.location = "complete.html"
+                        })
+                        return xhr;
+                    },
+                    url: "https://storage.googleapis.com/elko/user_uploads/" + file.name,
+                    type: "PUT",
+                    data: file,
+                    processData: false,
+                    contentType: file.type,
+                    success: function (result) {
+                        console.log(result);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
