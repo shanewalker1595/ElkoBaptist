@@ -13,7 +13,15 @@
             padding: 1em;
             position: relative;
         }
+        .header {
+            height: 200px;
+            max-height: 20vw;
+        }
         
+        .header h1 {
+            font-size: 4vw;
+        }
+
         .headerimg {
             width: 100%;
             max-width: 150px;
@@ -35,6 +43,7 @@
         .footertext {
             color: darkslategray;
             font-weight: bold;
+
         }
         
         .footerimg {
@@ -57,16 +66,17 @@
             width: 100%;
             height: 100%;
         }
+
+        @media screen and (max-width: 800px) {
+            .footertext { font-size: 3vw; }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="container">
-            <div class="row">
-                <div class="col-2">
-                    <img class="headerimg" src="https://storage.googleapis.com/elko/churchlogo.png"></img>
-                </div>
-                <div class="col-10">
+            <div class="row" style="background-image: url(https://storage.googleapis.com/elko/churchlogo.png); background-repeat: no-repeat; background-size: contain;">
+                <div class="col-12">
                     <table class="fullwidth">
                         <tr>
                             <td>
