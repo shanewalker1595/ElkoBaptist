@@ -1,8 +1,6 @@
 ; $(function () {
-    // Attach to the submit button.
-    $("#btnUploadFile").click(function (evt) {
-        var fd = new FormData();
-        fd.append('file', document.getElementById("inFile").files[0]);
+    $("#btnUploadFile").click(function (evt) {  
+        var file = document.getElementById("inFile").files[0]
         $.ajax({
             xhr: function () {
                 var xhr = new window.XMLHttpRequest();
@@ -12,21 +10,24 @@
                         percentComplete = parseInt(percentComplete * 100);
                         $("#Progress").val(percentComplete)
                         if (console) { console.log(percentComplete); }
-                        if (percentComplete === 100) {
-                            document.location = "complete.html";
-                        }
                     }
                 }, false);
+                xhr.upload.addEventListener("error", function (evt) {
+                    alert('There was an error uploading this file.');
+                });
+                xhr.upload.addEventListener("load", function (evt) {
+                    document.location = "complete.html"
+                })
                 return xhr;
             },
-            url: "http://storage.googleapis.com/elko",
-            type: "POST",
-            data: fd,
+            url: "https://storage.googleapis.com/elko/user_uploads/" + file.name,
+            type: "PUT",
+            data: file,
             processData: false,
-            contentType: false,
+            contentType: file.type,
             success: function (result) {
                 console.log(result);
             }
-        });
+        });        
     });
 });
