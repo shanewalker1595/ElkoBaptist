@@ -158,7 +158,7 @@
                             alert('There was an error uploading this file.');
                         });
                         xhr.upload.addEventListener("load", function (evt) {
-                            document.location = "complete.html"
+                            setTimeout(function() { document.location = "complete.html"; }, 3000);
                         })
                         return xhr;
                     },
