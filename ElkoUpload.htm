@@ -145,7 +145,7 @@
                     xhr: function () {
                         var xhr = new window.XMLHttpRequest();
                         // Progress Bar.
-                        xhr.upload.addEventListener("progress", function (evt) {
+                        xhr.addEventListener("progress", function (evt) {
                             if (evt.lengthComputable) {
                                 var percentComplete = evt.loaded / evt.total;
                                 percentComplete = parseInt(percentComplete * 100);
@@ -155,11 +155,11 @@
                             }
                         }, false);
                         // Handle browser based upload errors.
-                        xhr.upload.addEventListener("error", function (evt) {
+                        xhr.addEventListener("error", function (evt) {
                             alert('There was an error uploading this file.');
                         });
                         // Handle good and bad response codes from server.
-                        xhr.upload.addEventListener("load", function (evt) {
+                        xhr.addEventListener("load", function (evt) {
                             // 200 - 299 is a good range. 
                             if (evt.currentTarget.status > 199 && evt.currentTarget.status < 300) {
                                 setTimeout(function() { document.location = "complete.html"; }, 1000);
