@@ -3,21 +3,23 @@
 <head>
     <title>Elko Baptist Church</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        .header, .footer {
+        .header,
+        .footer {
             background-image: linear-gradient(to top right, white, rgb(243, 242, 242));
             padding: 1em;
             position: relative;
         }
+
         .header {
             height: 200px;
             max-height: 20vw;
         }
-        
+
         .header h1 {
             font-size: 4vw;
         }
@@ -26,7 +28,7 @@
             width: 100%;
             max-width: 150px;
         }
-        
+
         .content {
             min-height: 20vw;
             padding: 2em;
@@ -34,48 +36,52 @@
 
         .footer {
             height: 5em;
-        }        
-        
+        }
+
         .footer div {
             height: 100%;
         }
-        
+
         .footertext {
             color: darkslategray;
             font-weight: bold;
 
         }
-        
+
         .footerimg {
             width: 250px;
         }
-        
+
         .hidden {
             display: none;
         }
-        
+
         .centertext {
             text-align: center;
         }
-        
+
         .righttext {
             text-align: right;
         }
-        
+
         .fullwidth {
             width: 100%;
             height: 100%;
         }
 
         @media screen and (max-width: 800px) {
-            .footertext { font-size: 3vw; }
+            .footertext {
+                font-size: 3vw;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <div class="container">
-            <div class="row" style="background-image: url(https://storage.googleapis.com/elko/churchlogo.png); background-repeat: no-repeat; background-size: contain;">
+            <div class="row"
+                style="background-image: url(https://storage.googleapis.com/elko/churchlogo.png); background-repeat: no-repeat; background-size: contain;">
                 <div class="col-12">
                     <table class="fullwidth">
                         <tr>
@@ -110,8 +116,9 @@
                     <div id="uploader" class="hidden">
                         Status of your upload:
                         <div class="progress">
-                            <div id="Progress" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0"
-                                aria-valuemin="0" aria-valuemax="100"></div>
+                            <div id="Progress" class="progress-bar progress-bar-striped progress-bar-animated"
+                                role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0"
+                                aria-valuemax="100"></div>
                         </div>
                         <p id="progresstxt"></p>
                     </div>
@@ -139,36 +146,28 @@
             bsCustomFileInput.init()
 
             $("#btnUploadFile").click(function (evt) {
-                var file = document.getElementById("inFile").files[0];
+                // Reset all previous progress and inform the user of the new progress.
+                $("#Progress").width(0);
+                $("#progresstxt").text("Preparing your upload.");
                 $("#uploader").removeClass("hidden");
+
+                // Create a variable indicating if this is the firs time the progress has been reported.
+                var firstIterationOfProgress = true;
+                
+                // Get the element the user is trying to upload.
+                var file = document.getElementById("inFile").files[0];            
+
+                // Make the AJAX call to upload the file.
                 $.ajax({
                     xhr: function () {
                         var xhr = new window.XMLHttpRequest();
-                        // Progress Bar.
-                        xhr.addEventListener("progress", function (evt) {
-                            if (evt.lengthComputable) {
-                                var percentComplete = evt.loaded / evt.total;
-                                percentComplete = parseInt(percentComplete * 100);
-                                var txtPercent = percentComplete.toString().concat("%");
-                                $("#Progress").width(txtPercent);
-                                $("#progresstxt").text(txtPercent);
-                            }
-                        }, false);
+                        // Handle reporting of upload progress.
+                        xhr.upload.addEventListener("progress", uploadProgress, false);
                         // Handle browser based upload errors.
-                        xhr.addEventListener("error", function (evt) {
-                            alert('There was an error uploading this file.');
-                        });
+                        xhr.addEventListener("error", uploadError, false);
                         // Handle good and bad response codes from server.
-                        xhr.addEventListener("load", function (evt) {
-                            // 200 - 299 is a good range. 
-                            if (evt.currentTarget.status > 199 && evt.currentTarget.status < 300) {
-                                setTimeout(function() { document.location = "complete.html"; }, 1000);
-                            }                         
-                            else {
-                                alert("There was an error uploading this file. HTTP Status Code:" + evt.currentTarget.status);
-                                if (console) { console.log(evt.currentTarget); }
-                            }
-                        });
+                        xhr.addEventListener("load", uploadComplete, false);
+
                         return xhr;
                     },
                     url: "https://storage.googleapis.com/elko/user_uploads/" + file.name,
@@ -177,8 +176,49 @@
                     processData: false,
                     contentType: file.type
                 });
+
+
+                // Raised each time the progress of the upload is reported.
+                function uploadProgress(evt) {
+                    if (evt.lengthComputable) {
+                        // Compute the progress of the upload based on the amount send vs the total file size.
+                        var percentComplete = evt.loaded / evt.total;
+
+                        // Handle the bug where percent complete is 100% on the first progress report of a failed upload.
+                        if (firstIterationOfProgress && percentComplete == 1) { return; }
+                        else { firstIterationOfProgress = false; }
+
+                        // Convert and report the status of the upload.
+                        percentComplete = parseInt(percentComplete * 100);
+                        var txtPercent = percentComplete.toString().concat("%");
+                        $("#Progress").width(txtPercent);
+                        $("#progresstxt").text(txtPercent);
+                    }
+                }
+
+                // Raised when there is an error with the upload.
+                function uploadError(evt) {
+                    alert('There was an error uploading this file.');
+                }
+
+                // Raised when the upload has completed.
+                function uploadComplete(evt) {
+                    // Check that the HTTP Status code is in a valid 200 - 299 range. 
+                    if (evt.currentTarget.status > 199 && evt.currentTarget.status < 300) {
+                        $("#progresstxt").text("Finalizing your upload");
+                        setTimeout(function () { document.location = "complete.html"; }, 1000);
+                    }
+                    // Otherwise, report an error and reset the progress bar.
+                    else {
+                        alert("There was an error uploading this file. It's possible that another file with the same name has already been uploaded. HTTP Status Code:" + evt.currentTarget.status);
+                        $("#uploader").addClass("hidden");
+                        if (console) { console.log(evt.currentTarget); }
+                    }
+
+                }
             });
         });
     </script>
 </body>
+
 </html>
